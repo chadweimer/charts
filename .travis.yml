@@ -1,0 +1,27 @@
+language: minimal
+if: branch = master
+
+before_install:
+  - curl -L https://git.io/get_helm.sh | bash
+  - helm init --client-only
+
+script:
+  - mkdir files-to-gh-pages
+  - echo $(pwd)
+  - helm package charts/tomcat-prod -d files-to-gh-pages
+  - helm package charts/tomcat -d files-to-gh-pages
+  - cp README.md files-to-gh-pages
+  - cd files-to-gh-pages
+  - helm repo index .
+  - ls -ltr 
+  
+deploy:
+  provider: pages  
+  github_token: $GITHUB_TOKEN
+  local_dir: files-to-gh-pages
+  target_branch: gh-pages
+  verbose: true
+  skip_cleanup: true
+  keep_history: true
+  on:
+    branch: master
