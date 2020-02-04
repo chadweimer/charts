@@ -19,7 +19,7 @@ script:
   
 deploy:
   provider: pages  
-  github_token: $GITHUB_TOKEN
+  github_token: $GITHUB_OAUTH_TOKEN
   local_dir: files-to-gh-pages
   target_branch: gh-pages
   verbose: true
