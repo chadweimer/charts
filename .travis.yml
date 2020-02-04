@@ -2,14 +2,14 @@ language: minimal
 if: branch = master
 
 before_install:
-  - curl -L https://git.io/get_helm.sh | bash
+  - curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
   - helm init --client-only
 
 script:
   - mkdir files-to-gh-pages
   - echo $(pwd)
   - |
-    for chart in $(find . ! -path . -maxdepth 1 -type d); do
+    for chart in $(find . ! -path .* -maxdepth 1 -type d); do
       echo "Packaging chart $(basename ${chart})"
       helm package $(basename ${chart}) -d files-to-gh-pages
     done
