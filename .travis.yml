@@ -8,8 +8,10 @@ before_install:
 script:
   - mkdir files-to-gh-pages
   - echo $(pwd)
-  - helm package charts/tomcat-prod -d files-to-gh-pages
-  - helm package charts/tomcat -d files-to-gh-pages
+  - |
+    for chart in */; do
+      helm package $(dirname ${chart}) -d files-to-gh-pages
+    done
   - cp README.md files-to-gh-pages
   - cd files-to-gh-pages
   - helm repo index .
