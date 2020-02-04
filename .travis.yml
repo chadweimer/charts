@@ -10,6 +10,7 @@ script:
   - echo $(pwd)
   - |
     for chart in */; do
+      echo "Packaging chart $(dirname ${chart})"
       helm package $(dirname ${chart}) -d files-to-gh-pages
     done
   - cp README.md files-to-gh-pages
