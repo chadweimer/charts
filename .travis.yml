@@ -10,8 +10,8 @@ script:
   - echo $(pwd)
   - |
     for chart in $(find . ! -path . -maxdepth 1 -type d); do
-      echo "Packaging chart $(dirname ${chart})"
-      helm package $(dirname ${chart}) -d files-to-gh-pages
+      echo "Packaging chart $(basename ${chart})"
+      helm package $(basename ${chart}) -d files-to-gh-pages
     done
   - cp README.md files-to-gh-pages
   - cd files-to-gh-pages
