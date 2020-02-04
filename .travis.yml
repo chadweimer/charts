@@ -9,7 +9,7 @@ script:
   - mkdir files-to-gh-pages
   - echo $(pwd)
   - |
-    for chart in $(find . ! -path '*/\.*' -maxdepth 1 -type d); do
+    for chart in $(find . ! -path . ! -path .git -maxdepth 1 -type d); do
       echo "Packaging chart $(basename ${chart})"
       helm package $(basename ${chart}) -d files-to-gh-pages
     done
