@@ -1,0 +1,81 @@
+{{- range .Values.gomp.backups.data }}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "gomp.fullname" $ }}-{{ .name }}-data-backup
+  labels:
+    {{- include "gomp.labels" $ | nindent 4 }}
+spec:
+  schedule: {{ .schedule }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          {{- with $.Values.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 8 }}
+          {{- end }}
+          serviceAccountName: {{ include "gomp.serviceAccountName" $ }}
+          securityContext:
+            {{- toYaml $.Values.podSecurityContext | nindent 12 }}
+          containers:
+            - name: {{ .name }}
+              securityContext:
+                {{- toYaml $.Values.securityContext | nindent 16 }}
+              image: cwmr/aws-cli:1.24.10
+              command:
+                - "aws"
+                - "s3"
+                - "sync"
+                {{- if $.Values.gomp.uploads.driver | eq "s3" }}
+                - "s3://{{ $.Values.gomp.aws.bucket }}"
+                {{- else }}
+                - "/var/app/gomp/data"
+                {{- end }}
+                {{- if .destination.type | eq "nfs" }}
+                - "/backup/{{ .name }}"
+                {{- else if .destination.type | eq "s3" }}
+                - "s3://{{ .destination.bucket }}/web/{{ .name }}"
+                {{- end }}
+                - "--delete"
+              env:
+                - name: AWS_DEFAULT_REGION
+                  value: {{ $.Values.gomp.aws.region }}
+                - name: AWS_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ $.Values.gomp.existingSecret | default (include "gomp.fullname" $) }}
+                      key: aws-access-key-id
+                - name: AWS_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ $.Values.gomp.existingSecret | default (include "gomp.fullname" $) }}
+                      key: aws-secret-access-key
+              volumeMounts:
+                {{- if .destination.type | eq "nfs" }}
+                - name: backup
+                  mountPath: /backup
+                  {{- if .destination.subPath }}
+                  subPath: {{ .destination.subPath }}
+                  {{- end }}
+                {{- end }}
+                {{- if $.Values.persistence.data.enabled }}
+                - name: data
+                  mountPath: /var/app/gomp/data
+                  readOnly: true
+                {{- end }}
+          volumes:
+            {{- if .destination.type | eq "nfs" }}
+            - name: backup
+              nfs:
+                server: {{ .destination.server}}
+                path: {{ .destination.path}}
+            {{- end }}
+            {{- if $.Values.persistence.data.enabled }}
+            - name: data
+              persistentVolumeClaim:
+                claimName: {{ include "gomp.persistence.data.claimName" $ }}
+            {{- end }}
+          restartPolicy: Never
+{{- end }}

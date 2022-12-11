@@ -5,50 +5,130 @@ metadata:
   labels:
     {{- include "gomp.labels" . | nindent 4 }}
 spec:
+  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "gomp.selectorLabels" . | nindent 6 }}
   template:
     metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       labels:
         {{- include "gomp.selectorLabels" . | nindent 8 }}
     spec:
-    {{- with .Values.imagePullSecrets }}
+      {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
-    {{- end }}
+      {{- end }}
+      serviceAccountName: {{ include "gomp.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Chart.AppVersion }}"
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            {{- if .Values.postgresql.enabled }}
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  {{- if .Values.postgresql.auth.existingSecret }}
+                  name: {{ .Values.postgresql.auth.existingSecret }}
+                  key: password
+                  {{- else }}
+                  name: {{ include "gomp.fullname" . }}
+                  key: postgresql-password
+                  {{- end }}
+            - name: DATABASE_URL
+              value: postgres://{{ .Values.postgresql.auth.username }}:$(DATABASE_PASSWORD)@{{ include "postgresql.baseUrl" . }}/{{ .Values.postgresql.auth.database }}?sslmode=disable
+            {{- end }}
+            {{- if .Values.gomp.uploads.driver }}
+            - name: UPLOAD_DRIVER
+              value: {{ .Values.gomp.uploads.driver }}
+            {{- end }}
+            {{- if .Values.gomp.aws.bucket }}
+            - name: UPLOAD_PATH
+              value: {{ .Values.gomp.aws.bucket }}
+            {{- end }}
+            - name: SECURE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.gomp.existingSecret | default (include "gomp.fullname" .) }}
+                  key: secure-key
+            {{- if .Values.gomp.aws.auth.accessKeyId }}
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.gomp.existingSecret | default (include "gomp.fullname" .) }}
+                  key: aws-access-key-id
+            {{- end }}
+            {{- if .Values.gomp.aws.auth.secretAccessKey }}
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.gomp.existingSecret | default (include "gomp.fullname" .) }}
+                  key: aws-secret-access-key
+            {{- end }}
+            {{- if .Values.gomp.aws.region }}
+            - name: AWS_REGION
+              value: {{ .Values.gomp.aws.region }}
+            {{- end }}
+            {{- if .Values.gomp.env }}
+            {{- toYaml .Values.gomp.env | nindent 12 }}
+            {{- end }}
           ports:
             - name: http
               containerPort: 5000
               protocol: TCP
+          {{- with .Values.gomp.probes.liveness }}
           livenessProbe:
             httpGet:
-              path: /
+              path: {{ . }}
               port: http
+          {{- end }}
+          {{- with .Values.gomp.probes.readiness }}
           readinessProbe:
             httpGet:
-              path: /
+              path: {{ . }}
               port: http
+          {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          {{- if .Values.persistence.data.enabled }}
+          volumeMounts:
+            - name: data
+              mountPath: /var/app/gomp/data
+          {{- end }}
+      {{- if .Values.postgresql.enabled }}
+      initContainers:
+        - name: init-db
+          image: busybox:1
+          command:
+            - "sh"
+            - "-c"
+            - "until nslookup {{ include "postgresql.service.host" . }}; do echo waiting for {{ include "postgresql.service.host" . }}; sleep 5; done"
+      {{- end }}
+      {{- if .Values.persistence.data.enabled }}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "gomp.persistence.data.claimName" . }}
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-    {{- with .Values.affinity }}
+      {{- with .Values.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
-    {{- end }}
-    {{- with .Values.tolerations }}
+      {{- end }}
+      {{- with .Values.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
-    {{- end }}
+      {{- end }}

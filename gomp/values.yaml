@@ -1,16 +1,25 @@
-# Default values for gomp.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
-
 replicaCount: 1
 
 image:
-  repository: gomp
+  repository: cwmr/gomp
   pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
 
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
 
 podSecurityContext: {}
   # fsGroup: 2000
@@ -29,16 +38,31 @@ service:
 
 ingress:
   enabled: false
-  annotations: {}
+  className: ""
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 100m
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
   hosts:
     - host: gomp.local
-      paths: []
+      paths:
+        - path: /
+          pathType: Prefix
   tls: []
-  #  - secretName: chart-example-tls
+  #  - secretName: gomp-tls
   #    hosts:
-  #      - chart-example.local
+  #      - gomp.local
+
+persistence:
+  data:
+    enabled: true
+    existingClaim: ""
+    accessModes:
+      - ReadWriteOnce
+    volumeMode: Filesystem
+    selector: {}
+    size: 1Gi
+    storageClass: ""
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
@@ -52,8 +76,69 @@ resources: {}
   #   cpu: 100m
   #   memory: 128Mi
 
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
 nodeSelector: {}
 
 tolerations: []
 
 affinity: {}
+
+gomp:
+  probes:
+    liveness: "/ping"
+    readiness: "/ping"
+  env: []
+  secureKey: ChangeMe
+  existingSecret: ""
+  uploads:
+    driver: "fs"
+  aws:
+    auth:
+      accessKeyId: ""
+      secretAccessKey: ""
+    bucket: ""
+    region: ""
+  backups:
+    db: []
+      # - name: daily
+      #   schedule: "0 3 * * *"
+      #   destination:
+      #     type: s3
+      #     bucket: name-of-bucket
+      # - name: weekly
+      #   schedule: "0 3 * * 0"
+      #   destination:
+      #     type: nfs
+      #     server: 1.2.3.4
+      #     path: /path/to/share
+      #     subPath: sub/path
+    data: []
+      # - name: daily
+      #   schedule: "0 3 * * *"
+      #   destination:
+      #     type: s3
+      #     bucket: name-of-bucket
+      # - name: weekly
+      #   schedule: "0 3 * * 0"
+      #   destination:
+      #     type: nfs
+      #     server: 1.2.3.4
+      #     path: /path/to/share
+      #     subPath: sub/path
+
+postgresql:
+  enabled: true
+  auth:
+    database: gomp
+    username: gomp
+    password: ChangeMe
+    existingSecret: ""
+  service:
+    ports:
+      postgresql: 5432

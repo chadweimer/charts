@@ -1,0 +1,23 @@
+{{- with .Values.persistence.data }}
+{{- if and .enabled (not .existingClaim) }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "gomp.persistence.data.claimName" $ }}
+  labels:
+    {{- include "gomp.labels" $ | nindent 4 }}
+spec:
+  accessModes:
+    {{- toYaml .accessModes | nindent 4 }}
+  volumeMode: {{ .volumeMode }}
+  resources:
+    requests:
+      storage: {{ .size }}
+  {{- if .storageClass }}
+  storageClassName: {{ .storageClass }}
+  {{- end }}
+  {{- if .selector }}
+  selector: {{ .selector }}
+  {{- end }}
+{{- end }}
+{{- end }}
