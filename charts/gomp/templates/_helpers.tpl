@@ -79,11 +79,7 @@ Create the host name of the postgresql database
 {{- define "postgresql.service.host" -}}
 {{- if .Values.postgresql.enabled }}
 {{- $name := default "postgresql" .Values.postgresql.nameOverride }}
-{{- if .Release.Namespace }}
-{{- printf "%s-%s.%s.svc.cluster.local" .Release.Name $name .Release.Namespace | trunc 63 | trimSuffix "-" }}
-{{- else }}
-{{- printf "%s-%s.svc.cluster.local" .Release.Name $name | trunc 63 | trimSuffix "-" }}
-{{- end }}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
 {{- end }}
 {{- end }}
 

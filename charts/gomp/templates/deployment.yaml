@@ -112,7 +112,7 @@ spec:
           command:
             - "sh"
             - "-c"
-            - "until nslookup {{ include "postgresql.service.host" . }}; do echo waiting for {{ include "postgresql.service.host" . }}; sleep 5; done"
+            - "until nslookup {{ printf "%s.%s.svc.cluster.local" (include "postgresql.service.host" .) .Release.Namespace }}; do echo waiting for {{ include "postgresql.service.host" . }}; sleep 5; done"
       {{- end }}
       {{- if .Values.persistence.data.enabled }}
       volumes:
