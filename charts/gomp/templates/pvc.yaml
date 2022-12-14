@@ -1,5 +1,5 @@
 {{- with .Values.persistence.data }}
-{{- if and .enabled (eq (default "pvc" .type) "pvc") (not .existingClaim) }}
+{{- if and .enabled (eq "pvc" (default "pvc" .type)) (not .existingClaim) }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
