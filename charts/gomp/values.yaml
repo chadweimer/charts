@@ -57,6 +57,7 @@ ingress:
 persistence:
   data:
     enabled: true
+    type: pvc
     existingClaim: ""
     accessModes:
       - ReadWriteOnce
@@ -64,6 +65,8 @@ persistence:
     selector: {}
     size: 1Gi
     storageClass: ""
+    # type: hostPath
+    # hostPath: /path/on/host
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
@@ -92,13 +95,13 @@ affinity: {}
 
 gomp:
   probes:
-    liveness: "/ping"
-    readiness: "/ping"
+    liveness: "/"
+    readiness: "/"
   env: []
   secureKey: ChangeMe
   existingSecret: ""
   uploads:
-    driver: "fs"
+    driver: fs
   aws:
     auth:
       accessKeyId: ""
