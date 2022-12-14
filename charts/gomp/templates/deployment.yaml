@@ -117,8 +117,13 @@ spec:
       {{- if .Values.persistence.data.enabled }}
       volumes:
         - name: data
+          {{- if eq (default "pvc" .Values.persistence.data.type) "pvc" }}
           persistentVolumeClaim:
             claimName: {{ include "gomp.persistence.data.claimName" . }}
+          {{- else }}
+          hostPath:
+            path: {{ .Values.persistence.data.hostPath }}
+          {{- end }}
       {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
