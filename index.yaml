@@ -2,6 +2,24 @@ apiVersion: v1
 entries:
   gomp:
   - apiVersion: v2
+    appVersion: 3.3.2
+    created: "2023-01-09T00:38:48.309609307Z"
+    dependencies:
+    - condition: postgresql.enabled
+      name: postgresql
+      repository: https://charts.bitnami.com/bitnami
+      version: 11.9.13
+    description: Web-based recipe book
+    digest: 51bcda318e0316cc41eb08861abbf37f37af2322b332b2232487974d1b3bd534
+    name: gomp
+    sources:
+    - https://github.com/chadweimer/gomp
+    - https://hub.docker.com/r/cwmr/gomp
+    type: application
+    urls:
+    - https://github.com/chadweimer/charts/releases/download/gomp-0.4.2/gomp-0.4.2.tgz
+    version: 0.4.2
+  - apiVersion: v2
     appVersion: 3.3.1
     created: "2022-12-23T17:52:42.9053499Z"
     dependencies:
@@ -145,4 +163,4 @@ entries:
     urls:
     - https://github.com/chadweimer/charts/releases/download/gomp-0.2.0/gomp-0.2.0.tgz
     version: 0.2.0
-generated: "2022-12-23T17:52:42.905516401Z"
+generated: "2023-01-09T00:38:48.309917012Z"
