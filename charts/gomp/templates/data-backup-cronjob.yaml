@@ -23,7 +23,7 @@ spec:
             - name: {{ .name }}
               securityContext:
                 {{- toYaml $.Values.securityContext | nindent 16 }}
-              image: cwmr/aws-cli:1.24.10
+              image: ghcr.io/chadweimer/aws-cli:1.29.20
               command:
                 - "aws"
                 - "s3"

@@ -2,7 +2,7 @@ apiVersion: v2
 name: gomp
 description: Web-based recipe book
 type: application
-version: 1.0.0
+version: 1.0.1
 appVersion: "3.5.0"
 dependencies:
   - name: postgresql
@@ -11,4 +11,6 @@ dependencies:
     condition: postgresql.enabled
 sources:
   - https://github.com/chadweimer/gomp
+  - https://github.com/users/chadweimer/packages/container/package/aws-cli
   - https://github.com/users/chadweimer/packages/container/package/gomp
+  - https://github.com/users/chadweimer/packages/container/package/pgsql-s3-backup
