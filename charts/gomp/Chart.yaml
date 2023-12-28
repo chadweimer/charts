@@ -2,8 +2,8 @@ apiVersion: v2
 name: gomp
 description: Web-based recipe book
 type: application
-version: 1.0.3
-appVersion: "3.7.0"
+version: "1.0.4"
+appVersion: "3.8.0"
 dependencies:
   - name: postgresql
     version: "11.9.13"
