@@ -2,11 +2,11 @@ apiVersion: v2
 name: gomp
 description: Web-based recipe book
 type: application
-version: "1.0.5"
+version: "1.1.0"
 appVersion: "3.8.1"
 dependencies:
   - name: postgresql
-    version: "11.9.13"
+    version: "15.5.36"
     repository: "https://charts.bitnami.com/bitnami"
     condition: postgresql.enabled
 sources:
